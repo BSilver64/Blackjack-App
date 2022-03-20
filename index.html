@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<link rel="stylesheet" href="css/style.css">
+
+</head>
+<body>
+<div class="game">
+     <div class="game">
+            <h3>Blackjack</h3>
+    
+    <div class="game-body">
+           <div class="game-options">
+            <input type="button" id="btnStart" class="btn" value="start" onclick="startblackjack()">
+            <input type="button" id="hit" class="btn" value="hit me" onclick="hitMe()">
+            <input type="button" id="stay" class="btn" value="stay" onclick="stay()">
+            </div>
+    
+                <div class="status" id="status"></div>
+    
+        
+    
+            <div id="players" class="players">
+            </div>
+    
+            <div class="clear"></div>
+    </div>
+</div>
+
+<body>
+<script>
+
+
+
+    var suits = ["Spades", "Hearts", "Diamonds", "Clubs"];                              // init the suits in a 52 card deck
+    var values = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];    // init the values in a 52 card deck
+    var deck = new Array();                                                             // setting the deck == Array to store ^^^ suits and values
+
+     function createDeck()                                                              //creates the deck but going through the suits and values array and gives
+        {                                                                               // each value a weight. Checking to see if the face value is Jackl, Queen, or King and 
+            deck = new Array();                                                         // giving in a weight value of 10. If its Ace then by default == 11
+            for (var i = 0 ; i < values.length; i++)                                    // then creates variable to store 'card' and add to deck array
+            {   
+                for(var x = 0; x < suits.length; x++)
+                {
+                    var weight = parseInt(values[i]);
+                    if (values[i] == "J" || values[i] == "Q" || values[i] == "K")
+                        weight = 10;
+                    if (values[i] == "A")
+                        weight = 11;
+                 
+                    var card = { Value: values[i], Suit: suits[x], Weight: weight };
+                    deck.push(card);
+                }
+            }
+        }
+
+
+        var players = new Array();                                                          //array of players that will be available at start of match
+
+       function createPlayers(num)                                                        // createPlayers takes in a number of players and gives each player a hand, id, and points
+        {
+            players = new Array();
+            for(var i = 1; i <= num; i++)
+            {
+                var hand = new Array();
+                var player = { Name: 'Player ' + i, ID: i, Points: 0, Hand: hand };
+                players.push(player);
+            }
+        }
+
+        function createPlayersUI()                                                      // creates html elements and connected to variables to then create a centered div for 
+        {                                                                               // each player. If a card is drawn in will append as the next created div until there is 
+            document.getElementById('players').innerHTML = '';                          // a winner
+            for(var i = 0; i < players.length; i++)
+            {
+                var div_player = document.createElement('div');
+                var div_playerid = document.createElement('div');
+                var div_hand = document.createElement('div');
+                var div_points = document.createElement('div');
+
+                div_points.className = 'points';
+                div_points.id = 'points_' + i;
+                div_player.id = 'player_' + i;
+                div_player.className = 'player';
+                div_hand.id = 'hand_' + i;
+
+                div_playerid.innerHTML = players[i].ID;
+                div_player.appendChild(div_playerid);
+                div_player.appendChild(div_hand);
+                div_player.appendChild(div_points);
+                document.getElementById('players').appendChild(div_player);
+            }
+        }
+
+
+
+
+        function shuffle()                                                             // randomizes the deck array using a for loop & Math.Random
+            {
+                // for 1000 turns
+                // switch the values of two random cards
+                for (var i = 0; i < 1000; i++)
+                {
+                    var location1 = Math.floor((Math.random() * deck.length));
+                    var location2 = Math.floor((Math.random() * deck.length));
+                    var tmp = deck[location1];
+
+                    deck[location1] = deck[location2];
+                    deck[location2] = tmp;
+                }
+            }
+
+
+        deck = shuffle(deck);                                                         // shuffle hands before dealHands()
+
+
+
+        function dealHands()                                                          // function that deals 2 cards on press of start button to deal
+                                                                                      // two cards from the deck array and popping the first index
+            {
+                // alternate handing cards to each player
+                // 2 cards each
+                for(var i = 0; i < 2; i++)
+                {
+                    for (var x = 0; x < players.length; x++)
+                    {
+                        var card = deck.pop();
+                        players[x].Hand.push(card);
+                        renderCard(card, x);
+                        updatePoints();
+                    }
+                }
+
+              
+            }
+
+         function renderCard(card, player)                                         // function that takes in the htlm5 element and passes in the 
+                                                                                   //  hand of two cards and appends each card drawn to the first div
+            {
+                var hand = document.getElementById('hand_' + player);
+                hand.appendChild(getCardUI(card));
+            }
+
+            function getCardUI(card)                                                // function that creates a div that handles what suit a card is and 
+                                                                                    // its value to create each drawn card with correct styling.
+            {   
+                var el = document.createElement('div');
+                el.className = 'card';
+                if(card.Suit == 'Diamonds'){
+                    var ascii_char = '&diams;';
+                } 
+                else {
+                    var ascii_char = '&' + card.Suit.toLowerCase() + ';';
+                    }    
+                el.innerHTML = '<span class="number">' + card.Value + '</span><span class="suit">' + ascii_char + '</span>';
+                
+                return el;
+            }
+
+
+
+         function startblackjack()                                              //function of the start button that takes in players, using functions
+                                                                                // createDeck();  shuffle(); createPlayers(); createPlayersUI(); and dealHands();
+            {
+                document.getElementById('btnStart').value = 'Restart';
+              
+                // deal 2 cards to every player object
+                currentPlayer = 0;
+                createDeck();
+                shuffle();
+                createPlayers(2);
+                createPlayersUI();
+                dealHands();
+                document.getElementById('player_' + currentPlayer).classList.add('active');
+            }
+
+
+                                                                        // returns the number of points that a player has in hand         
+        function getPoints(player)
+        {
+            var points = 0;
+            for(var i = 0; i < players[player].Hand.length; i++)
+            {
+                points += players[player].Hand[i].Weight;
+            }
+            players[player].Points = points;
+            return points;
+        }
+
+        function updatePoints()                                        // updatesPoints based off who wins eeach hand since the beginning of the 
+                                                                       // window.onload
+        {
+            for (var i = 0 ; i < players.length; i++)
+            {
+                getPoints(i);
+                document.getElementById('points_' + i).innerHTML = players[i].Points;
+            }
+        }
+
+        function hitMe()                                               // function that pops another card off and adds to current players hand.
+        {                                                              // then rendering that card and updating the points and chcking winner.
+            // pop a card from the deck to the current player
+            // check if current player new points are over 21
+            var card = deck.pop();
+            players[currentPlayer].Hand.push(card);
+            renderCard(card, currentPlayer);
+            updatePoints();
+            check();
+        }
+
+        function stay()                                                // function that switches to the next player in the game and allows the 
+                                                                       //next players the decision of hitting or staying
+        {
+            // move on to next player, if any
+            if (currentPlayer != players.length-1) {
+                document.getElementById('player_' + currentPlayer).classList.remove('active');
+                currentPlayer += 1;
+                document.getElementById('player_' + currentPlayer).classList.add('active');
+            }
+
+            else {
+                end();
+            }
+        }
+
+        function end()                                              // function that ends each game and caluclates points.
+        {
+            var winner = -1;
+            var score = 0;
+
+            for(var i = 0; i < players.length; i++)
+            {
+                if (players[i].Points > score && players[i].Points < 22)
+                {
+                    winner = i;
+                }
+
+                score = players[i].Points;
+            }
+
+            document.getElementById('status').innerHTML = 'Winner: Player ' + players[winner].ID;
+            document.getElementById("status").style.display = "inline-block";
+        }
+
+        function check()                                            // function that checks if any player has a 'bust' value > 21 and displays 
+                                                                    // text based off it
+        {
+            if (players[currentPlayer].Points > 21)
+            {
+                document.getElementById('status').innerHTML = 'Player: ' + players[currentPlayer].ID + ' LOST';
+                document.getElementById('status').style.display = "inline-block";
+                end();
+            }
+        }
+
+        
+
+        window.addEventListener('load', function(){                // function that starts the game as soon as the window is loaded
+            createDeck();
+            shuffle();
+            createPlayers(1);
+        });
+
+</script>
+</html>
